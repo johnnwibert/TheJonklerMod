@@ -407,7 +407,7 @@ SMODS.Joker {
                 local tag_pool = get_current_pool('Tag')
                 local selected_tag = pseudorandom_element(tag_pool, 'jonkler_seed')
                 local it = 1
-                while selected_tag == 'UNAVAILABLE' or selected_tag == 'tag_orbital' do
+                while selected_tag == 'UNAVAILABLE' or selected_tag == 'tag_orbital' do -- orbital tag crashes the game, fix later
                     it = it + 1
                     selected_tag = pseudorandom_element(tag_pool, 'jonkler_seed_resample'..it)
                 end
@@ -420,6 +420,78 @@ SMODS.Joker {
             return {
                 message = "Unboxing!"
             }
+        end
+    end
+}
+
+SMODS.Joker {
+    key = "lamb",
+    rarity = 3,
+    atlas = "thejonklermod",
+    pos = { x = 0, y = 0 },
+    blueprint_compat = false,
+    cost = 8,
+    discovered = true,
+    loc_txt = {
+        name = "The Lamb",
+        text = {
+            "{C:red}Dies{} upon beating a {C:attention}Boss Blind{}",
+            "Gives {C:money}$#3#{} upon {C:red}Death{} and has",
+            "a {C:green}#1# in #2#{} chance to make a",
+            "random {C:attention}Joker {}{C:spectral}Negative{}"
+        }
+    },
+    config = { extra = { odds = 4, dollars = 20 } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { (G.GAME.probabilities.normal or 1), card.ability.extra.odds, card.ability.extra.dollars } }
+    end,
+    calculate = function(self, card, context)
+        if context.ante_change and context.ante_end then
+            G.GAME.dollar_buffer = (G.GAME.dollar_buffer or 0) + card.ability.extra.dollars
+            if SMODS.pseudorandom_probability(card, 'lamb', 1, card.ability.extra.odds) then
+                local valid_jokers = SMODS.Edition:get_edition_cards(G.jokers, true)
+                local chosen_joker = pseudorandom_element(valid_jokers, 'lamb')
+                if chosen_joker then
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            chosen_joker:juice_up()
+                            return true
+                        end
+                    }))
+                chosen_joker:set_edition({ negative = true })
+                return {
+                    dollars = card.ability.extra.dollars,
+                    func = function()
+                        G.E_MANAGER:add_event(Event({
+                            func = function()
+                                G.GAME.dollar_buffer = 0
+                                card:start_dissolve({ HEX("57ecab") }, nil, 1.6)
+                                play_sound('slice1', 0.96 + math.random() * 0.08)
+                                return true
+                            end
+                        }))
+                    end,
+                    message = "Sacrificed!", extra = { message = "Blessed!", message_card = chosen_joker },
+                    SMODS.destroy_cards(card, nil, nil, true)
+                }
+                end
+            else
+            return {
+                dollars = card.ability.extra.dollars,
+                func = function()
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            G.GAME.dollar_buffer = 0
+                            card:start_dissolve({ HEX("57ecab") }, nil, 1.6)
+                            play_sound('slice1', 0.96 + math.random() * 0.08)
+                            return true
+                        end
+                    }))
+                end,
+                message = "Sacrificed!",
+                SMODS.destroy_cards(card, nil, nil, true),
+            }
+            end         -- Possibly strange ordering on messages, also need to stop it from displaying $20 text if possible
         end
     end
 }
