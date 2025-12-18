@@ -428,7 +428,7 @@ SMODS.Joker {
     key = "lamb",
     rarity = 3,
     atlas = "thejonklermod",
-    pos = { x = 0, y = 0 },
+    pos = { x = 4, y = 1 },
     blueprint_compat = false,
     cost = 8,
     discovered = true,
@@ -447,6 +447,7 @@ SMODS.Joker {
     end,
     calculate = function(self, card, context)
         if context.ante_change and context.ante_end then
+            SMODS.destroy_cards(card, nil, nil, true)
             G.GAME.dollar_buffer = (G.GAME.dollar_buffer or 0) + card.ability.extra.dollars
             if SMODS.pseudorandom_probability(card, 'lamb', 1, card.ability.extra.odds) then
                 local valid_jokers = SMODS.Edition:get_edition_cards(G.jokers, true)
@@ -472,7 +473,6 @@ SMODS.Joker {
                         }))
                     end,
                     message = "Sacrificed!", extra = { message = "Blessed!", message_card = chosen_joker },
-                    SMODS.destroy_cards(card, nil, nil, true)
                 }
                 end
             else
@@ -488,8 +488,7 @@ SMODS.Joker {
                         end
                     }))
                 end,
-                message = "Sacrificed!",
-                SMODS.destroy_cards(card, nil, nil, true),
+                message = "Sacrificed!"
             }
             end         -- Possibly strange ordering on messages, also need to stop it from displaying $20 text if possible
         end
