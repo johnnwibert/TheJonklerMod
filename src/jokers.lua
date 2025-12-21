@@ -6,7 +6,7 @@ SMODS.Atlas {
 }
 
 SMODS.Joker {
-    key = "evil_ass_joker",
+    key = "evil_joker",
     rarity = 1,
     atlas = 'thejonklermod',
     pos = { x = 0, y = 0 },
@@ -15,10 +15,10 @@ SMODS.Joker {
     discovered = true,
     config = {extra = { mult = -20}, },
     loc_txt = {
-        name = "Evil Ass Joker",
+        name = "Evil Joker",
         text = {
             "Does some",
-            "{C:mult,s:1.2}Evil Ass{} shit",
+            "{C:mult,s:1.2}Evil{} stuff",
         },
     },
     loc_vars = function(self, info_queue, card)
@@ -28,7 +28,7 @@ SMODS.Joker {
         if context.joker_main then
             return {
                 mult = card.ability.extra.mult,
-                message = 'Get Fucked!'
+                message = 'Evil!'
             }
         end
     end
