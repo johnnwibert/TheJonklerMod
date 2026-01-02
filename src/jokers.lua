@@ -1,3 +1,4 @@
+-- Atlas is 6 jokers wide (index 0-5)
 SMODS.Atlas {
     key = "thejonklermod",
     path = "thejonklermod.png",
@@ -5,6 +6,9 @@ SMODS.Atlas {
     py = 95
 }
 
+-- Evil Joker
+-- Useless joker. I'll give him something to do one day, but he
+-- was initially created as a joke/test. The first joker I made.
 SMODS.Joker {
     key = "evil_joker",
     rarity = 1,
@@ -34,6 +38,9 @@ SMODS.Joker {
     end
 }
 
+-- Illusion Joker
+-- Loosely inspired by Gob from Arrested Development. Turns one
+-- scoring card into a lucky card, then destroys a random card held in hand.
 SMODS.Joker {
     key = "illusion_joker",
     rarity = 2,
@@ -80,6 +87,10 @@ SMODS.Joker {
     end
 }
 
+-- Is This Your Card?
+-- Mimics Idol's card selecting and scoring behavior. 
+-- Each score of the selected card gives money equal to card.ability.extra.dollars.
+-- Currently only works for the first hand of each round. Subject to change.
 SMODS.Joker {
     key = "your_card",
     rarity = 1,
@@ -120,6 +131,10 @@ SMODS.Joker {
         end
 }
 
+-- Heroic Sacrifice
+-- Terminator reference. When sold, it picks a random disabled and/or
+-- perishable joker and re-enables it (and removes the perishable sticker if applicable).
+-- One of my favorite jokers conceptually. Niche but impactful in high stake endless runs.
 SMODS.Joker {
     key = "heroic_sacrifice",
     rarity = 2,
@@ -165,6 +180,10 @@ SMODS.Joker {
     end
 }
 
+-- Transmutation Joker
+-- Very odd one. Turns played gold and steel cards into "geel" cards.
+-- Geel cards act as both gold and steel cards, although they currently do NOT work with
+-- jokers like Golden Ticket or Steel Joker (subject to change). Fantastic in Baron/Mime runs.
 SMODS.Joker {
     key = "transmutation_joker",
     rarity = 3,
@@ -209,6 +228,9 @@ SMODS.Joker {
     end
 }
 
+-- Piggy Bank
+-- Genuinely more evil than the evil joker. Gains sell value every reroll,
+-- with a chance to break on every roll.  Will break when you need it most.
 SMODS.Joker {
     key = "piggy_bank",
     rarity = 1,
@@ -255,6 +277,9 @@ SMODS.Joker {
     end
 }
 
+-- Scrapbook Joker
+-- Gains times mult per voucher redeemed. It does not consider vouchers purchased
+-- before you got the joker (scales like Constellation or Hologram).
 SMODS.Joker {
     key = "scrapbook",
     rarity = 2,
@@ -291,6 +316,9 @@ SMODS.Joker {
     end
 }
 
+-- Here Comes...
+-- Beatles reference. Gains times mult per Sun Tarot used.
+-- Generally sucks and is way too common. Needs to be reworked, or maybe just made uncommon and stronger.
 SMODS.Joker {
     key = "here_comes",
     rarity = 1,
@@ -328,6 +356,9 @@ SMODS.Joker {
     end
 }
 
+-- One Man's Trash
+-- Gives a spectral card if the final discard of the round contains 5 of a chosen suit.
+-- Picks the suit like Ancient Joker. (Likely) Easier to use than Seance, but less farmable.
 SMODS.Joker {
     key = "trash_joker",
     rarity = 2,
@@ -385,6 +416,11 @@ SMODS.Joker {
 end
 }
 
+-- Blind Box
+-- Gives a random tag after beating a Boss Blind. Unlikely to make a major impact,
+-- but (I believe) tags are never negative (wink) so it's an easy take. Originally intended
+-- to help with finding voucher skips on endless runs, but its antisynergy with Diet Cola
+-- makes it unreliable for that purpose. Still potentially good as an early utility joker.
 SMODS.Joker {
     key = "blind_box",
     rarity = 1,
@@ -424,6 +460,10 @@ SMODS.Joker {
     end
 }
 
+-- The Lamb
+-- A sacrificial lamb. Most of the time, it's impact is very insignificant
+-- considering its cost and rarity. If you're blessed, it becomes essentially the only
+-- consequence-free way to make one of your jokers negative. Invaluable, if you're lucky.
 SMODS.Joker {
     key = "lamb",
     rarity = 3,
@@ -450,8 +490,14 @@ SMODS.Joker {
             SMODS.destroy_cards(card, nil, nil, true)
             G.GAME.dollar_buffer = (G.GAME.dollar_buffer or 0) + card.ability.extra.dollars
             if SMODS.pseudorandom_probability(card, 'lamb', 1, card.ability.extra.odds) then
-                local valid_jokers = SMODS.Edition:get_edition_cards(G.jokers, true)
-                local chosen_joker = pseudorandom_element(valid_jokers, 'lamb')
+                local valid_jokers = SMODS.Edition:get_edition_cards(G.jokers, false)   -- Fix, can currently hit jokers with an effect
+                local valid_jokers_minus_lamb = {}
+                for k, v in pairs(G.jokers.cards) do
+                    if v ~= card then
+                        table.insert(valid_jokers_minus_lamb, v)
+                    end
+                end
+                local chosen_joker = pseudorandom_element(valid_jokers_minus_lamb, 'lamb')
                 if chosen_joker then
                     G.E_MANAGER:add_event(Event({
                         func = function()
@@ -461,7 +507,9 @@ SMODS.Joker {
                     }))
                 chosen_joker:set_edition({ negative = true })
                 return {
+                    remove_default_message = true,
                     dollars = card.ability.extra.dollars,
+                    message = "Sacrificed!", extra = { message = "Blessed!", message_card = chosen_joker },
                     func = function()
                         G.E_MANAGER:add_event(Event({
                             func = function()
@@ -471,13 +519,14 @@ SMODS.Joker {
                                 return true
                             end
                         }))
-                    end,
-                    message = "Sacrificed!", extra = { message = "Blessed!", message_card = chosen_joker },
+                    end
                 }
                 end
             else
             return {
+                remove_default_message = true,
                 dollars = card.ability.extra.dollars,
+                message = "Sacrificed!",
                 func = function()
                     G.E_MANAGER:add_event(Event({
                         func = function()
@@ -487,14 +536,63 @@ SMODS.Joker {
                             return true
                         end
                     }))
-                end,
-                message = "Sacrificed!"
+                end
             }
             end         -- Possibly strange ordering on messages, also need to stop it from displaying $20 text if possible
         end
     end
 }
 
+-- Stargazing Joker
+-- Makes planets that come from blue seals negative. Even if your consumeable slots are full,
+-- it will create the planets. This is good for making use of large amounts of blue seals at once,
+-- but the main application is its synergy with the Observatory voucher. Utilizes a hook on create_card.
+SMODS.Joker {
+    key = "stargazing_joker",
+    rarity = 3,
+    atlas = "thejonklermod",    -- No art yet
+    pos = { x = 5, y = 1 },
+    blueprint_compat = false,
+    cost = 8,
+    discovered = true,
+    loc_txt = {
+        name = "Stargazing Joker",
+        text = {
+            "Turns {C:planet}Planet{} cards created",
+            "from {C:planet}Blue{} {C:attention}seals{} {C:spectral}Negative{}"
+        }
+    },
+    config = { extra = { check = false } },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.check } }
+    end,
+    calculate = function(self, card, context)
+        if context.first_hand_drawn then
+            card.ability.extra.check = false
+        end
+        if not context.blueprint and context.end_of_round and context.individual and context.cardarea == G.hand and not card.ability.extra.check then
+            card.ability.extra.check = true
+            for k, v in ipairs(G.hand.cards) do
+                if v.seal == 'Blue' then    -- This allows us to TEMPORARILY bypass the consumeable limit
+                    G.GAME.consumeable_buffer = G.GAME.consumeable_buffer - 1
+                end                         -- Otherwise, you will only get as many negative planets as there are consumeable slots
+            end                             -- Gets reset by the create_card hook, may be moved here later
+        end
+    end
+}
+
+-- Stargazing Joker hook, forces planets from blue seals to be negative
+local create_card_ref = create_card
+function create_card(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key, key_append)
+    local card = create_card_ref(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key, key_append)
+    if next(SMODS.find_card("j_jonkler_stargazing_joker")) and key_append == "blusl" then
+        card:set_edition('e_negative', true)
+        G.GAME.consumeable_buffer = 0
+    end
+    return card
+end
+
+-- Picks a card for "Is This Your Card?" joker at the start of each round
 local function reset_money_card()
     G.GAME.current_round.money_card = { rank = 'Ace', suit = 'Spades' }
     local valid_money_cards = {}
@@ -511,6 +609,7 @@ local function reset_money_card()
     end
 end
 
+-- Picks a suit for "One Man's Trash" joker at the start of each round
 local function reset_trash_suit()
     G.GAME.current_round.trash_suit = G.GAME.current_round.trash_suit or 'Spades'
     local suits = {}
@@ -521,6 +620,7 @@ local function reset_trash_suit()
     G.GAME.current_round.trash_suit = trash_suit
 end
 
+-- Resets MODDED game globals for each run
 function SMODS.current_mod.reset_game_globals(run_start)
     reset_money_card()
     reset_trash_suit()

@@ -3,7 +3,7 @@
     "name": "thejonklermod",
     "display_name": "The Jonkler Mod",
     "author": ["FlyingFish"],
-    "description": "Probably destroys the game and possibly the machine you're playing on.",
+    "description": "A work in progress mod that adds jo(n)k(l)ers and more",
     "prefix": "jonkler",
     "main_file": "thejonklermod.lua",
     "badge_colour": "652a8c",
