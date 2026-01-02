@@ -372,7 +372,7 @@ SMODS.Joker {
         text = {
             "Gives a {C:spectral}Spectral{} card if",
             "{C:attention}final discard{} of round contains",
-            "{C:attention} #2#{} {V:1}#1#{} cards",
+            "{C:attention}#2#{} {V:1}#1#{} cards",
             "{s:0.8}Suit changes every round{}"
         },
     },

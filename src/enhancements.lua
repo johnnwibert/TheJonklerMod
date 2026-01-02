@@ -1,13 +1,16 @@
 SMODS.Atlas {
-    key = "jonkler_enhancement",
-    path = "jonkler_enhancement.png",
+    key = "jonkler_enhancements",
+    path = "jonkler_enhancements.png",
     px = 71,
     py = 95
 }
 
+-- Geel Enhancement
+-- Functions as both a steel card and a gold card, but not
+-- for jokers like Golden Ticket or Steel Joker (subject to change).
 SMODS.Enhancement {
     key = "geel",
-    atlas = "jonkler_enhancement",
+    atlas = "jonkler_enhancements",
     pos = { x = 0, y = 0 },
     in_pool = function(self, args)
         return false
