@@ -200,8 +200,8 @@ SMODS.Joker {
     loc_txt = {
         name = "Transmutation Joker",
         text = {
-            "Scored {C:attention}Steel Cards{} and {C:attention}Gold Cards{}",
-            "become {C:attention}Geel Cards",
+            "Scored {C:attention}Steel Cards{} and",
+            "{C:attention}Gold Cards{}become {C:attention}Geel Cards",
         },
     },
     calculate = function(self, card, context)
