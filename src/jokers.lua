@@ -470,6 +470,7 @@ SMODS.Joker {
     atlas = "thejonklermod",
     pos = { x = 4, y = 1 },
     blueprint_compat = false,
+    eternal_compat = false,
     cost = 8,
     discovered = true,
     loc_txt = {
@@ -481,16 +482,16 @@ SMODS.Joker {
             "random {C:attention}Joker {}{C:spectral}Negative{}"
         }
     },
-    config = { extra = { odds = 4, dollars = 20 } },
+    config = { extra = { odds = 4, dollars = 20, sell_bonus = 10 } },
     loc_vars = function(self, info_queue, card)
-        return { vars = { (G.GAME.probabilities.normal or 1), card.ability.extra.odds, card.ability.extra.dollars } }
+        return { vars = { (G.GAME.probabilities.normal or 1), card.ability.extra.odds, card.ability.extra.dollars, card.ability.extra.sell_bonus } }
     end,
     calculate = function(self, card, context)
         if context.ante_change and context.ante_end then
             SMODS.destroy_cards(card, nil, nil, true)
             G.GAME.dollar_buffer = (G.GAME.dollar_buffer or 0) + card.ability.extra.dollars
             if SMODS.pseudorandom_probability(card, 'lamb', 1, card.ability.extra.odds) then
-                local valid_jokers = SMODS.Edition:get_edition_cards(G.jokers, false)   -- Fix, can currently hit jokers with an effect
+                local valid_jokers = SMODS.Edition:get_edition_cards(G.jokers, true)
                 local valid_jokers_minus_lamb = {}
                 for k, v in pairs(G.jokers.cards) do
                     if v ~= card then
@@ -543,6 +544,54 @@ SMODS.Joker {
     end
 }
 
+-- Ceremonial Dagger is designed in a way that negates any activity from the Joker it is deleting.
+-- Therefore, we take ownership of Ceremonial Dagger to include an exception for The Lamb.
+SMODS.Joker:take_ownership('ceremonial',
+    {
+        calculate = function(self, card, context)
+            if context.setting_blind and not context.blueprint then
+                local my_pos = nil
+                for i = 1, #G.jokers.cards do
+                    if G.jokers.cards[i] == card then
+                        my_pos = i
+                        break
+                    end
+                end
+                local lamb_check = G.jokers.cards[my_pos + 1]
+                if lamb_check then
+                end
+                if lamb_check and lamb_check.config.center.key == "j_jonkler_lamb" then
+                    lamb_check.sell_cost = lamb_check.sell_cost + 10
+                    if not card.edition then
+                        card:set_edition('e_polychrome', true)
+                    end
+                    G.E_MANAGER:add_event(Event({
+                    func = function()
+                        if G.jokers then
+                            G.jokers.config.card_limit = G.jokers.config.card_limit + 1
+                        end
+                        return true
+                    end,
+                }))
+                lamb_check.getting_sliced = true
+                G.GAME.joker_buffer = G.GAME.joker_buffer - 1
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        G.GAME.joker_buffer = 0
+                        card:juice_up(0.8, 0.8)
+                        lamb_check:start_dissolve({ HEX("57ecab") }, nil, 1.6)
+                        play_sound('slice1', 0.96 + math.random() * 0.08)
+                        return true
+                    end
+                }))
+                return { message = "SACRIFICE!", extra = { message = "+1 Joker Slot!", message_card = lamb_check} }
+                end
+            end
+        end
+    },
+    true
+)
+
 -- Stargazing Joker
 -- Makes planets that come from blue seals negative. Even if your consumeable slots are full,
 -- it will create the planets. This is good for making use of large amounts of blue seals at once,
@@ -580,6 +629,7 @@ SMODS.Joker {
         end
     end
 }
+
 
 -- Stargazing Joker hook, forces planets from blue seals to be negative
 local create_card_ref = create_card
