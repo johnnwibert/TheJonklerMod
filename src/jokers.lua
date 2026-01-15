@@ -482,9 +482,9 @@ SMODS.Joker {
             "random {C:attention}Joker {}{C:spectral}Negative{}"
         }
     },
-    config = { extra = { odds = 4, dollars = 20, sell_bonus = 10 } },
+    config = { extra = { odds = 4, dollars = 20 } },
     loc_vars = function(self, info_queue, card)
-        return { vars = { (G.GAME.probabilities.normal or 1), card.ability.extra.odds, card.ability.extra.dollars, card.ability.extra.sell_bonus } }
+        return { vars = { (G.GAME.probabilities.normal or 1), card.ability.extra.odds, card.ability.extra.dollars } }
     end,
     calculate = function(self, card, context)
         if context.ante_change and context.ante_end then
