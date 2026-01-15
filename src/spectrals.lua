@@ -179,12 +179,13 @@ SMODS.Spectral {    -- Todo: Check jokers that can't be perishable and add hand 
                     func = function()
                         play_sound('tarot1')
                         jokers_to_decay[i]:juice_up(0.8, 0.8)
-                        jokers_to_decay[i].ability.perishable = true
+                        jokers_to_decay[i]:add_sticker('perishable', true)
                         return true
                     end
                 }))
                 delay(0.2)
             end
+            G.hand:change_size(card.ability.extra.hand_size_mod)
         end
     end,
     can_use = function(self, card)

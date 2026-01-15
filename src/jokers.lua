@@ -170,8 +170,8 @@ SMODS.Joker {
                         return true
                     end
                 }))
-                joker_to_save.ability.perishable = nil
-                joker_to_save.debuff = nil
+                joker_to_save:remove_sticker("perishable")
+                card.debuff = false
                 return {
                     message = "I'll be back!", extra = { message = "Thanks!", message_card = joker_to_save }
                 }
@@ -558,10 +558,19 @@ SMODS.Joker:take_ownership('ceremonial',
                     end
                 end
                 local lamb_check = G.jokers.cards[my_pos + 1]
-                if lamb_check then
-                end
+                lamb_check.getting_sliced = true
+                G.GAME.joker_buffer = G.GAME.joker_buffer - 1
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        G.GAME.joker_buffer = 0
+                        card:juice_up(0.8, 0.8)
+                        lamb_check:start_dissolve({ HEX("57ecab") }, nil, 1.6)
+                        play_sound('slice1', 0.96 + math.random() * 0.08)
+                        play_sound('explosion_release1')
+                        return true
+                    end
+                }))
                 if lamb_check and lamb_check.config.center.key == "j_jonkler_lamb" then
-                    lamb_check.sell_cost = lamb_check.sell_cost + 10
                     if not card.edition then
                         card:set_edition('e_polychrome', true)
                     end
@@ -572,17 +581,6 @@ SMODS.Joker:take_ownership('ceremonial',
                         end
                         return true
                     end,
-                }))
-                lamb_check.getting_sliced = true
-                G.GAME.joker_buffer = G.GAME.joker_buffer - 1
-                G.E_MANAGER:add_event(Event({
-                    func = function()
-                        G.GAME.joker_buffer = 0
-                        card:juice_up(0.8, 0.8)
-                        lamb_check:start_dissolve({ HEX("57ecab") }, nil, 1.6)
-                        play_sound('slice1', 0.96 + math.random() * 0.08)
-                        return true
-                    end
                 }))
                 return { message = "SACRIFICE!", extra = { message = "+1 Joker Slot!", message_card = lamb_check} }
                 end
