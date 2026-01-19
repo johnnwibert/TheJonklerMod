@@ -628,6 +628,37 @@ SMODS.Joker {
     end
 }
 
+-- SMODS.Joker {    -- Something with 7's, no great idea yet
+--     key = 'jackpot',
+--     rarity = 2,
+--     atlas = 'thejonklermod',
+--     pos = { x = 0, y = 2 },
+--     blueprint_compat = true,
+-- }
+
+-- Loch Ness Joker
+-- Gives a random non-Planet consumeable if played hand contains a secret poker hand
+-- Will likely give junk most of the time, but it also is the only way to get
+-- a Soul or Black Hole outside of a card pack. Mix this with Perkeo, and you're
+-- printing Legendaries.
+-- SMODS.Joker {
+--     key = 'lochness',
+--     rarity = 3,
+--     atlas = 'thejonklermod',
+--     pos = { x = 1, y = 2 },
+--     blueprint_compat = false,
+--     cost = 8,
+--     discovered = true,
+--     loc_txt = {
+--         name = "Loch Ness Joker",
+--         text = {
+--             "Gives a random non-{C:planet}Planet{} {C:attention}Consumeable",
+--             "if played hand contains a",
+--             "{C:spectral}'Secret'{} {C:attention}Poker Hand{}"
+--         }
+--     }
+-- }
+
 
 -- Stargazing Joker hook, forces planets from blue seals to be negative
 local create_card_ref = create_card
