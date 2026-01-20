@@ -482,11 +482,16 @@ SMODS.Joker {
             "random {C:attention}Joker {}{C:spectral}Negative{}"
         }
     },
-    config = { extra = { odds = 4, dollars = 20 } },
+    config = { extra = { odds = 4, dollars = 20, juice_check = true } },
     loc_vars = function(self, info_queue, card)
-        return { vars = { (G.GAME.probabilities.normal or 1), card.ability.extra.odds, card.ability.extra.dollars } }
+        return { vars = { (G.GAME.probabilities.normal or 1), card.ability.extra.odds, card.ability.extra.dollars, card.ability.extra.juice_check } }
     end,
     calculate = function(self, card, context)
+        if card.ability.extra.juice_check and next(SMODS.find_card("j_ceremonial")) then
+            local eval = function() return next(SMODS.find_card("j_ceremonial")) end
+            juice_card_until(card, eval, true)
+            card.ability.extra.juice_check = false
+        end
         if context.ante_change and context.ante_end then
             SMODS.destroy_cards(card, nil, nil, true)
             G.GAME.dollar_buffer = (G.GAME.dollar_buffer or 0) + card.ability.extra.dollars
@@ -593,7 +598,8 @@ SMODS.Joker:take_ownership('ceremonial',
 -- Stargazing Joker
 -- Makes planets that come from blue seals negative. Even if your consumeable slots are full,
 -- it will create the planets. This is good for making use of large amounts of blue seals at once,
--- but the main application is its synergy with the Observatory voucher. Utilizes a hook on create_card.
+-- but the main application is its synergy with the Observatory voucher. 
+-- IMPORTANT: Utilizes a hook on create_card.
 SMODS.Joker {
     key = "stargazing_joker",
     rarity = 3,
@@ -628,6 +634,17 @@ SMODS.Joker {
     end
 }
 
+-- Stargazing Joker hook, forces planets from blue seals to be negative
+local create_card_ref = create_card
+function create_card(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key, key_append)
+    local card = create_card_ref(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key, key_append)
+    if next(SMODS.find_card("j_jonkler_stargazing_joker")) and key_append == "blusl" then
+        card:set_edition('e_negative', true)
+        G.GAME.consumeable_buffer = 0
+    end
+    return card
+end
+
 -- SMODS.Joker {    -- Something with 7's, no great idea yet
 --     key = 'jackpot',
 --     rarity = 2,
@@ -641,35 +658,30 @@ SMODS.Joker {
 -- Will likely give junk most of the time, but it also is the only way to get
 -- a Soul or Black Hole outside of a card pack. Mix this with Perkeo, and you're
 -- printing Legendaries.
--- SMODS.Joker {
---     key = 'lochness',
---     rarity = 3,
---     atlas = 'thejonklermod',
---     pos = { x = 1, y = 2 },
---     blueprint_compat = false,
---     cost = 8,
---     discovered = true,
---     loc_txt = {
---         name = "Loch Ness Joker",
---         text = {
---             "Gives a random non-{C:planet}Planet{} {C:attention}Consumeable",
---             "if played hand contains a",
---             "{C:spectral}'Secret'{} {C:attention}Poker Hand{}"
---         }
---     }
--- }
-
-
--- Stargazing Joker hook, forces planets from blue seals to be negative
-local create_card_ref = create_card
-function create_card(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key, key_append)
-    local card = create_card_ref(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key, key_append)
-    if next(SMODS.find_card("j_jonkler_stargazing_joker")) and key_append == "blusl" then
-        card:set_edition('e_negative', true)
-        G.GAME.consumeable_buffer = 0
+SMODS.Joker {
+    key = 'lochness',
+    rarity = 3,
+    atlas = 'thejonklermod',
+    pos = { x = 1, y = 2 },
+    blueprint_compat = false,
+    cost = 8,
+    discovered = true,
+    loc_txt = {
+        name = "Loch Ness Joker",
+        text = {
+            "Gives a random non-{C:planet}Planet{} {C:attention}Consumeable",
+            "if played hand contains a",
+            "{C:spectral}'Secret'{} {C:attention}Poker Hand{}"
+        }
+    },
+    calculate = function(self, card, context)
+        if context.before and (context.scoring_name == 'Flush House' or context.scoring_name == 'Flush Five' or context.scoring_name == 'Five of a Kind') then
+            for k, v in pairs(G.consumeables) do
+                print("Consumeable: " ..v)
+            end
+        end
     end
-    return card
-end
+}
 
 -- Picks a card for "Is This Your Card?" joker at the start of each round
 local function reset_money_card()
