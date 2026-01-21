@@ -553,8 +553,8 @@ SMODS.Joker {
 -- Therefore, we take ownership of Ceremonial Dagger to include an exception for The Lamb.
 SMODS.Joker:take_ownership('ceremonial',
     {
-        calculate = function(self, card, context)
-            if context.setting_blind and not context.blueprint then
+        calculate = function(self, card, context)   -- BROKEN: Dagger currently doesn't perform regular functions when lamb is present.
+            if next(SMODS.find_card("j_jonkler_lamb")) and context.setting_blind and not context.blueprint then
                 local my_pos = nil
                 for i = 1, #G.jokers.cards do
                     if G.jokers.cards[i] == card then
@@ -662,23 +662,38 @@ SMODS.Joker {
     key = 'lochness',
     rarity = 3,
     atlas = 'thejonklermod',
-    pos = { x = 1, y = 2 },
-    blueprint_compat = false,
+    pos = { x = 1, y = 2 }, -- No Art Yet
+    blueprint_compat = true,
     cost = 8,
     discovered = true,
     loc_txt = {
         name = "Loch Ness Joker",
         text = {
-            "Gives a random non-{C:planet}Planet{} {C:attention}Consumeable",
-            "if played hand contains a",
+            "Gives a random non-{C:planet}Planet{}",
+            "{C:attention}Consumeable{} if played hand contains a",
             "{C:spectral}'Secret'{} {C:attention}Poker Hand{}"
         }
     },
     calculate = function(self, card, context)
-        if context.before and (context.scoring_name == 'Flush House' or context.scoring_name == 'Flush Five' or context.scoring_name == 'Five of a Kind') then
-            for k, v in pairs(G.consumeables) do
-                print("Consumeable: " ..v)
+        if context.before and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit and (context.scoring_name == 'Flush House' or context.scoring_name == 'Flush Five' or context.scoring_name == 'Five of a Kind') then
+            local consumeable_pool = {}
+            for k, v in pairs(G.P_CENTER_POOLS.Consumeables) do
+                if v.set ~= "Planet" then
+                    table.insert(consumeable_pool, v.key)
+                end
             end
+            local random_consumeable = pseudorandom_element(consumeable_pool, 'lochness')
+            G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+            G.E_MANAGER:add_event(Event({
+                func = function()
+                    SMODS.add_card({ key = random_consumeable })
+                    G.GAME.consumeable_buffer = 0
+                    return true
+                end
+            }))
+            return {
+                message = "Revealed!"
+            }
         end
     end
 }
