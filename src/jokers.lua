@@ -553,8 +553,8 @@ SMODS.Joker {
 -- Therefore, we take ownership of Ceremonial Dagger to include an exception for The Lamb.
 SMODS.Joker:take_ownership('ceremonial',
     {
-        calculate = function(self, card, context)   -- BROKEN: Dagger currently doesn't perform regular functions when lamb is present.
-            if next(SMODS.find_card("j_jonkler_lamb")) and context.setting_blind and not context.blueprint then
+        calculate = function(self, card, context)   -- Dagger doesn't get mult from lamb. self.ability.mult can't be accessed(?), fix later maybe
+            if context.setting_blind and not context.blueprint then
                 local my_pos = nil
                 for i = 1, #G.jokers.cards do
                     if G.jokers.cards[i] == card then
@@ -563,31 +563,32 @@ SMODS.Joker:take_ownership('ceremonial',
                     end
                 end
                 local lamb_check = G.jokers.cards[my_pos + 1]
-                lamb_check.getting_sliced = true
-                G.GAME.joker_buffer = G.GAME.joker_buffer - 1
-                G.E_MANAGER:add_event(Event({
-                    func = function()
-                        G.GAME.joker_buffer = 0
-                        card:juice_up(0.8, 0.8)
-                        lamb_check:start_dissolve({ HEX("57ecab") }, nil, 1.6)
-                        play_sound('slice1', 0.96 + math.random() * 0.08)
-                        play_sound('explosion_release1')
-                        return true
-                    end
-                }))
-                if lamb_check and lamb_check.config.center.key == "j_jonkler_lamb" then
+                if lamb_check.config.center.key == "j_jonkler_lamb" then
+                    lamb_check.getting_sliced = true
+                    G.GAME.joker_buffer = G.GAME.joker_buffer - 1
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            G.GAME.joker_buffer = 0
+                            self.ability.mult = self.ability.mult + lamb_check.sell_cost * 2
+                            card:juice_up(0.8, 0.8)
+                            lamb_check:start_dissolve({ HEX("57ecab") }, nil, 1.6)
+                            play_sound('slice1', 0.96 + math.random() * 0.08)
+                            play_sound('explosion_release1')
+                            return true
+                        end
+                    }))
                     if not card.edition then
                         card:set_edition('e_polychrome', true)
                     end
                     G.E_MANAGER:add_event(Event({
-                    func = function()
-                        if G.jokers then
-                            G.jokers.config.card_limit = G.jokers.config.card_limit + 1
-                        end
-                        return true
-                    end,
-                }))
-                return { message = "SACRIFICE!", extra = { message = "+1 Joker Slot!", message_card = lamb_check} }
+                        func = function()
+                            if G.jokers then
+                                G.jokers.config.card_limit = G.jokers.config.card_limit + 1
+                            end
+                            return true
+                        end,
+                    }))
+                    return { message = "SACRIFICE!", extra = { message = "+1 Joker Slot!", message_card = lamb_check} }
                 end
             end
         end
