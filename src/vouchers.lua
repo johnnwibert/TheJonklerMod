@@ -1,6 +1,6 @@
 SMODS.Atlas {
-    key = "jonkler_vouchers",
-    path = "jonkler_vouchers.png",
+    key = "jonkler_enhancements",
+    path = "jonkler_enhancements.png",
     px = 71,
     py = 95
 }
@@ -10,21 +10,27 @@ SMODS.Atlas {
 SMODS.Voucher {
     key = "amplify",
     pos = { x = 0, y = 0 },
+    discovered = true,
+    loc_txt = {
+        name = "Amplify",
+        text = {
+            "Just affects stones rn lmao"
+        }
+    },
 }
 
 SMODS.Enhancement:take_ownership('stone', {
+    replace_base_card = true,
+    no_rank = true,
+    no_suit = true,
+    always_scores = true,
     config = { bonus = 50, h_Xchips = 1.5 },
     loc_vars = function(self, info_queue, card)
-        return { vars = { self.config.bonus, self.config.h_Xchips } }
+        local key = 'm_stone'
+        if G.GAME.used_vouchers['v_jonkler_amplify'] then
+            key = 'm_jonkler_stone_upgrade'
+        end
+        return { key = key, vars = { self.config.bonus, self.config.h_Xchips } }
     end,
-    loc_txt = {
-        name = "Stone Card",
-        text = {
-            "{C:blue}+#1#{} chips",
-            "no rank or suit",
-            "gives {C:white,X:blue}X#2# chips",
-            "while held in hand"
-            }
-        },
-    }
+}
 )
